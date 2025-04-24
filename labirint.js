@@ -25,9 +25,8 @@ directions.sort(() => Math.random() - 0.5); //et oli suva labirint iga kord
 
         if (nx >= 0 && ny >= 0 && nx < mazeHeight && ny < mazeWidth && maze[nx][ny] === 1) {
             maze[nx][ny] = 0; // tee
-            maze[x + dx][y + dy] = 0; // Открываем стену
-
-            generateMaze(nx, ny); // Рекурсивный вызов для следующей ячейки
+            maze[x + dx][y + dy] = 0; // Avame seina
+            generateMaze(nx, ny); // Rekursiivne kutse järgmise kausta jaoks
         }
     }
 }
