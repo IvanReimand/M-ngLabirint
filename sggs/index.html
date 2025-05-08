@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>htmlMaze</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Text+Me+One&display=swap');
+
+    * {
+      font-family: 'Text Me One', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(to right, #c2e9fb, #a1c4fd); /* Новый фоновый градиент */
+      display: grid;
+      grid-template-areas:
+        'header header'
+        'canvas settings'
+        'canvas controls'
+        'footer footer';
+      grid-template-columns: max-content max-content;
+      grid-gap: 10px;
+      padding: 10px;
+    }
+
+    header {
+      grid-area: header;
+      font-size: 2em;
+      font-weight: bold;
+      text-align: center;
+      position: relative;
+      color: #333;
+    }
+
+    #timer {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 0.6em;
+      background: #fff;
+      padding: 3px 8px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    canvas {
+      grid-area: canvas;
+      border: 2px solid #333;
+    }
+
+    .settings {
+      grid-area: settings;
+      padding: 10px;
+      background-color: #eee;
+      border-radius: 8px;
+    }
+
+    .settings label {
+      display: block;
+      margin-top: 8px;
+    }
+
+    .settings input[type="text"] {
+      width: 50px;
+      margin-left: 5px;
+    }
+
+    .controls {
+      grid-area: controls;
+      display: grid;
+      grid-template-areas:
+        '. up .'
+        'left . right'
+        '. down .';
+      gap: 5px;
+      justify-content: center;
+    }
+
+    .controls div {
+      background-color: #666;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2em;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      border-radius: 5px;
+    }
+
+    .up { grid-area: up; }
+    .right { grid-area: right; }
+    .down { grid-area: down; }
+    .left { grid-area: left; }
+
+    footer {
+      grid-area: footer;
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+
+    footer a {
+      text-decoration: none;
+      color: #333;
+    }
+
+    footer a:hover {
+      background-color: #ddd;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        grid-template-areas:
+          'header'
+          'canvas'
+          'settings'
+          'controls'
+          'footer';
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body onload="onLoad();">
+  <header>
+    htmlMaze
+    <div id="timer">Time: 0s</div>
+  </header>
+  <canvas id="mainForm"></canvas>
+
+  <div class="settings">
+    <label for="cols">Columns:</label>
+    <input id="cols" type="text" value="20" />
+    <label for="rows">Rows:</label>
+    <input id="rows" type="text" value="20" />
+    <br><br>
+    <input id="generate" type="button" value="Generate" />
+  </div>
+
+  <div class="controls">
+    <div id="up">&#8679;</div>
+    <div id="right">&#8680;</div>
+    <div id="down">&#8681;</div>
+    <div id="left">&#8678;</div>
+  </div>
+
+  <footer>&copy; 2025 <a href="mailto:JakesAddress@gmail.com">Jake (John) Moe</a></footer>
+
+  <script>
+    let ctx, canvas, maze, mazeHeight, mazeWidth, player;
+    let timer = 0;
+    let timerInterval = null;
+    let timerStarted = false;
+
+    class Player {
+      constructor() { this.reset(); }
+      reset() {
+        this.col = 0;
+        this.row = 0;
+      }
+    }
+
+    class MazeCell {
+      constructor(col, row) {
+        this.col = col;
+        this.row = row;
+        this.eastWall = true;
+        this.northWall = true;
+        this.southWall = true;
+        this.westWall = true;
+        this.visited = false;
+      }
+    }
+
+    class Maze {
+      constructor(cols, rows, cellSize) {
+        this.backgroundColor = "#ffffff";
+        this.cols = cols;
+        this.endColor = "#88FF88";
+        this.mazeColor = "#000000";
+        this.playerColor = "#880088";
+        this.rows = rows;
+        this.cellSize = cellSize;
+        this.cells = [];
+        this.generate();
+      }
+
+      generate() {
+        mazeHeight = this.rows * this.cellSize;
+        mazeWidth = this.cols * this.cellSize;
+        canvas.height = mazeHeight;
+        canvas.width = mazeWidth;
+
+        for (let col = 0; col < this.cols; col++) {
+          this.cells[col] = [];
+          for (let row = 0; row < this.rows; row++) {
+            this.cells[col][row] = new MazeCell(col, row);
+          }
+        }
+
+        let rndCol = Math.floor(Math.random() * this.cols);
+        let rndRow = Math.floor(Math.random() * this.rows);
+        let stack = [this.cells[rndCol][rndRow]];
+
+        while (this.hasUnvisited()) {
+          let currCell = stack[stack.length - 1];
+          currCell.visited = true;
+
+          if (this.hasUnvisitedNeighbor(currCell)) {
+            let foundNeighbor = false;
+            let dir;
+            let nextCell;
+
+            do {
+              dir = Math.floor(Math.random() * 4);
+              switch (dir) {
+                case 0: // east
+                  if (currCell.col < this.cols - 1 && !this.cells[currCell.col + 1][currCell.row].visited) {
+                    currCell.eastWall = false;
+                    nextCell = this.cells[currCell.col + 1][currCell.row];
+                    nextCell.westWall = false;
+                    foundNeighbor = true;
+                  }
+                  break;
+                case 1: // north
+                  if (currCell.row > 0 && !this.cells[currCell.col][currCell.row - 1].visited) {
+                    currCell.northWall = false;
+                    nextCell = this.cells[currCell.col][currCell.row - 1];
+                    nextCell.southWall = false;
+                    foundNeighbor = true;
+                  }
+                  break;
+                case 2: // south
+                  if (currCell.row < this.rows - 1 && !this.cells[currCell.col][currCell.row + 1].visited) {
+                    currCell.southWall = false;
+                    nextCell = this.cells[currCell.col][currCell.row + 1];
+                    nextCell.northWall = false;
+                    foundNeighbor = true;
+                  }
+                  break;
+                case 3: // west
+                  if (currCell.col > 0 && !this.cells[currCell.col - 1][currCell.row].visited) {
+                    currCell.westWall = false;
+                    nextCell = this.cells[currCell.col - 1][currCell.row];
+                    nextCell.eastWall = false;
+                    foundNeighbor = true;
+                  }
+                  break;
+              }
+              if (foundNeighbor) stack.push(nextCell);
+            } while (!foundNeighbor);
+          } else {
+            stack.pop();
+          }
+        }
+
+        this.redraw();
+      }
+
+      hasUnvisited() {
+        for (let col = 0; col < this.cols; col++) {
+          for (let row = 0; row < this.rows; row++) {
+            if (!this.cells[col][row].visited) return true;
+          }
+        }
+        return false;
+      }
+
+      hasUnvisitedNeighbor(cell) {
+        return (
+          (cell.col > 0 && !this.cells[cell.col - 1][cell.row].visited) ||
+          (cell.col < this.cols - 1 && !this.cells[cell.col + 1][cell.row].visited) ||
+          (cell.row > 0 && !this.cells[cell.col][cell.row - 1].visited) ||
+          (cell.row < this.rows - 1 && !this.cells[cell.col][cell.row + 1].visited)
+        );
+      }
+
+      redraw() {
+        ctx.fillStyle = this.backgroundColor;
+        ctx.fillRect(0, 0, mazeWidth, mazeHeight);
+
+        ctx.fillStyle = this.endColor;
+        ctx.fillRect((this.cols - 1) * this.cellSize, (this.rows - 1) * this.cellSize, this.cellSize, this.cellSize);
+
+        ctx.strokeStyle = this.mazeColor;
+
+        for (let col = 0; col < this.cols; col++) {
+          for (let row = 0; row < this.rows; row++) {
+            const x = col * this.cellSize;
+            const y = row * this.cellSize;
+
+            if (this.cells[col][row].northWall) {
+              ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + this.cellSize, y); ctx.stroke();
+            }
+            if (this.cells[col][row].eastWall) {
+              ctx.beginPath(); ctx.moveTo(x + this.cellSize, y); ctx.lineTo(x + this.cellSize, y + this.cellSize); ctx.stroke();
+            }
+            if (this.cells[col][row].southWall) {
+              ctx.beginPath(); ctx.moveTo(x, y + this.cellSize); ctx.lineTo(x + this.cellSize, y + this.cellSize); ctx.stroke();
+            }
+            if (this.cells[col][row].westWall) {
+              ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + this.cellSize); ctx.stroke();
+            }
+          }
+        }
+
+        ctx.fillStyle = this.playerColor;
+        ctx.fillRect(player.col * this.cellSize + 5, player.row * this.cellSize + 5, this.cellSize - 10, this.cellSize - 10);
+      }
+    }
+
+    function onLoad() {
+      canvas = document.getElementById("mainForm");
+      ctx = canvas.getContext("2d");
+      player = new Player();
+
+      maze = new Maze(20, 20, 25);
+      maze.redraw();
+
+      document.addEventListener("keydown", onKeyDown);
+      document.getElementById("generate").onclick = () => {
+        const cols = parseInt(document.getElementById("cols").value);
+        const rows = parseInt(document.getElementById("rows").value);
+        resetTimer();
+        player.reset();
+        maze = new Maze(cols, rows, 25);
+      };
+
+      ["up", "right", "down", "left"].forEach(dir => {
+        document.getElementById(dir).addEventListener("click", () => onControlClick(dir));
+      });
+    }
+
+    function onKeyDown(e) {
+      const key = e.key.toLowerCase();
+      if (key === "arrowup" || key === "w") movePlayer("up");
+      else if (key === "arrowright" || key === "d") movePlayer("right");
+      else if (key === "arrowdown" || key === "s") movePlayer("down");
+      else if (key === "arrowleft" || key === "a") movePlayer("left");
+    }
+
+    function onControlClick(dir) {
+      movePlayer(dir);
+    }
+
+    function movePlayer(dir) {
+      const c = player.col, r = player.row;
+
+      startTimer(); // Запуск таймера при движении
+
+      if (dir === "up" && !maze.cells[c][r].northWall) player.row--;
+      else if (dir === "right" && !maze.cells[c][r].eastWall) player.col++;
+      else if (dir === "down" && !maze.cells[c][r].southWall) player.row++;
+      else if (dir === "left" && !maze.cells[c][r].westWall) player.col--;
+
+      maze.redraw();
+      checkVictory();
+    }
+
+    function checkVictory() {
+      if (player.col === maze.cols - 1 && player.row === maze.rows - 1) {
+        resetTimer();
+        alert("Victory! Maze will grow!");
+        let newCols = parseInt(document.getElementById("cols").value) + 5;
+        let newRows = parseInt(document.getElementById("rows").value) + 5;
+        document.getElementById("cols").value = newCols;
+        document.getElementById("rows").value = newRows;
+        player.reset();
+        maze = new Maze(newCols, newRows, 25);
+      }
+    }
+
+    function startTimer() {
+      if (timerStarted) return;
+      timerStarted = true;
+      timerInterval = setInterval(() => {
+        timer++;
+        document.getElementById("timer").innerText = `Time: ${timer}s`;
+      }, 1000);
+    }
+
+    function resetTimer() {
+      timer = 0;
+      timerStarted = false;
+      clearInterval(timerInterval);
+      document.getElementById("timer").innerText = `Time: 0s`;
+    }
+  </script>
+</body>
+</html>

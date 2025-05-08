@@ -4,6 +4,8 @@ let maze;
 let mazeHeight;
 let mazeWidth;
 let player;
+let timerInterval;
+let remainingSeconds = 0;
 
 class Player {
 
@@ -239,4 +241,41 @@ function onLoad() {
 
   document.addEventListener("keydown", onKeyDown);
   document.getElementById("generate").addEventListener("click", onClick);
+  document.getElementById("start-timer").addEventListener("click", startTimer);
+  document.getElementById("reset-timer").addEventListener("click", resetTimer);
+
+}
+
+
+function startTimer() {
+  const minutes = parseInt(document.getElementById("timer-minutes").value, 10);
+  const seconds = parseInt(document.getElementById("timer-seconds").value, 10);
+  remainingSeconds = minutes * 60 + seconds;
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    remainingSeconds--;
+    updateTimerDisplay();
+
+    if (remainingSeconds <= 0) {
+      clearInterval(timerInterval);
+      alert("Time's up!");
+    }
+  }, 1000);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  document.getElementById("timer-display").textContent = "00:00";
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(remainingSeconds / 60);
+  const secs = remainingSeconds % 60;
+  document.getElementById("timer-display").textContent =
+    String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
 }

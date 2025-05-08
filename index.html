@@ -3,7 +3,7 @@
   <head>
     <link rel="stylesheet" href="style.css">
     <meta charset="UTF-8">
-    <script src="script.js"></script>
+    <script src="labirint.js"></script>
     <title>htmlMaze</title>
   </head>
   <body onload="onLoad();">
@@ -25,8 +25,16 @@
         </tbody>
       </table>
     </div>
-    <div id="footer">
-      &copy; 2017 <a href="mailto:JakesAddress@gmail.com">Jake (John) Moe</a>
+    <div id="timer-settings">
+      <h3>Timer</h3>
+      <label for="timer-minutes">Minutes:</label>
+      <input type="number" id="timer-minutes" min="0" value="1" />
+      <label for="timer-seconds">Seconds:</label>
+      <input type="number" id="timer-seconds" min="0" value="0" />
+      <br/><br/>
+      <input type="button" id="start-timer" value="Start Timer" />
+      <input type="button" id="reset-timer" value="Reset Timer" />
+      <h4 id="timer-display">00:00</h4>
     </div>
   </body>
 </html>
