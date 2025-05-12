@@ -7,34 +7,47 @@
     <title>htmlMaze</title>
   </head>
   <body onload="onLoad();">
-    <h2>htmlMaze</h2>
-    <canvas id="mainForm"></canvas>
-    <div id="settings">
-      <table>
-        <tbody>
-          <tr>
-            <td><label for="cols">Columns:</label></td>
-            <td><input id="cols" type="text" size="5" value="20" /></td>
-          </tr><tr>
-            <td><label for="rows">Rows:</label></td>
-            <td><input id="rows" type="text" size="5" value="20" /></td>
-          </tr><tr>
-            <td>&nbsp;</td>
-            <td><input id="generate" type="button" value="Generate" /></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div id="timer-settings">
-      <h3>Timer</h3>
-      <label for="timer-minutes">Minutes:</label>
-      <input type="number" id="timer-minutes" min="0" value="1" />
-      <label for="timer-seconds">Seconds:</label>
-      <input type="number" id="timer-seconds" min="0" value="0" />
-      <br/><br/>
-      <input type="button" id="start-timer" value="Start Timer" />
-      <input type="button" id="reset-timer" value="Reset Timer" />
-      <h4 id="timer-display">00:00</h4>
-    </div>
+    <div class="background">
+      <h2>htmlMaze</h2>
+      <canvas id="mainForm"></canvas>
+      <div id="settings">
+        <table>
+          <tbody>
+            <tr>
+              <td><label for="cols">Columns:</label></td>
+              <td><input id="cols" type="text" size="5" value="20" /></td>
+            </tr><tr>
+              <td><label for="rows">Rows:</label></td>
+              <td><input id="rows" type="text" size="5" value="20" /></td>
+            </tr><tr>
+              <td>&nbsp;</td>
+              <td><input id="generate" type="button" value="Generate" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="timer-settings">
+        <h3>Timer</h3>
+        <label for="timer-minutes">Minutes:</label>
+        <input type="number" id="timer-minutes" min="0" value="1" />
+        <label for="timer-seconds">Seconds:</label>
+        <input type="number" id="timer-seconds" min="0" value="0" />
+        <br/><br/>
+        <input type="button" id="start-timer" value="Start Timer" />
+        <input type="button" id="reset-timer" value="Reset Timer" />
+        <h4 id="timer-display">00:00</h4>
+      </div>
+    
+    </div><br><br>
+    <table>
+      <tr>
+        <th>//lisame timeri (8.05.25)<th>
+      </tr>
+      <tr>
+        <th>//lisame background (12.05.25)<th>
+      </tr>
+
+    </table>
   </body>
 </html>
