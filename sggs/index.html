@@ -127,6 +127,13 @@
   </style>
 </head>
 <body onload="onLoad();">
+  <audio id="muusika">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Sinu brauser ei toeta helielementi.
+  </audio>
+
+  <button onclick="document.getElementById('muusika').play()">▶️ Mängi muusikat</button>
+
   <header>
     htmlMaze
     <div id="timer">Time: 0s</div>
