@@ -12,7 +12,7 @@
     }
 
     body {
-      background: linear-gradient(to right, #c2e9fb, #a1c4fd); /* Новый фоновый градиент */
+      background: linear-gradient(to right, #c2e9fb, #a1c4fd);
       display: grid;
       grid-template-areas:
         'header header'
@@ -130,6 +130,7 @@
   <header>
     htmlMaze
     <div id="timer">Time: 0s</div>
+    <div id="score">Score: 0</div> <!-- Добавим счёт -->
   </header>
   <canvas id="mainForm"></canvas>
 
@@ -156,12 +157,20 @@
     let timer = 0;
     let timerInterval = null;
     let timerStarted = false;
+    let score = 0; // Счёт игрока
 
     class Player {
       constructor() { this.reset(); }
       reset() {
         this.col = 0;
         this.row = 0;
+      }
+    }
+
+    class Coin {
+      constructor(col, row) {
+        this.col = col;
+        this.row = row;
       }
     }
 
@@ -174,6 +183,7 @@
         this.southWall = true;
         this.westWall = true;
         this.visited = false;
+        this.coin = null; // В каждой ячейке будет монетка
       }
     }
 
@@ -184,9 +194,11 @@
         this.endColor = "#88FF88";
         this.mazeColor = "#000000";
         this.playerColor = "#880088";
+        this.coinColor = "#FFD700"; // Цвет монетки
         this.rows = rows;
         this.cellSize = cellSize;
         this.cells = [];
+        this.coins = []; // Массив монет
         this.generate();
       }
 
@@ -200,6 +212,17 @@
           this.cells[col] = [];
           for (let row = 0; row < this.rows; row++) {
             this.cells[col][row] = new MazeCell(col, row);
+          }
+        }
+
+        // Размещение монет
+        this.coins = [];
+        for (let i = 0; i < Math.floor(this.cols * this.rows * 0.1); i++) { // 10% клеток будут монетами
+          let col = Math.floor(Math.random() * this.cols);
+          let row = Math.floor(Math.random() * this.rows);
+          if (!this.cells[col][row].coin) {
+            this.cells[col][row].coin = new Coin(col, row);
+            this.coins.push(this.cells[col][row].coin);
           }
         }
 
@@ -306,6 +329,14 @@
             if (this.cells[col][row].westWall) {
               ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + this.cellSize); ctx.stroke();
             }
+
+            // Рисуем монетки
+            if (this.cells[col][row].coin) {
+              ctx.fillStyle = this.coinColor;
+              ctx.beginPath();
+              ctx.arc(x + this.cellSize / 2, y + this.cellSize / 2, this.cellSize / 4, 0, Math.PI * 2);
+              ctx.fill();
+            }
           }
         }
 
@@ -351,12 +382,19 @@
     function movePlayer(dir) {
       const c = player.col, r = player.row;
 
-      startTimer(); // Запуск таймера при движении
+      startTimer();
 
       if (dir === "up" && !maze.cells[c][r].northWall) player.row--;
       else if (dir === "right" && !maze.cells[c][r].eastWall) player.col++;
       else if (dir === "down" && !maze.cells[c][r].southWall) player.row++;
       else if (dir === "left" && !maze.cells[c][r].westWall) player.col--;
+
+      // Проверка на сбор монетки
+      if (maze.cells[player.col][player.row].coin) {
+        maze.cells[player.col][player.row].coin = null;
+        score++;
+        document.getElementById("score").innerText = `Score: ${score}`;
+      }
 
       maze.redraw();
       checkVictory();
